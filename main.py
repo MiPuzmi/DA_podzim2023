@@ -2,8 +2,6 @@ from opportunity_point import PointOfOpportunity
 import folium
 from folium.plugins import MarkerCluster
 from folium.plugins import Search
-import pandas
-import geopandas
 from shapely.geometry import Point
 
 NORTH = 50.17743
@@ -11,81 +9,73 @@ SOUTH = 49.9419
 WEST = 14.224437
 EAST = 14.706788
 
-S1 = 49.9981
-N1 = 50.1443
-W1 = 14.224437
-E1 = 14.706788
 
-#tady si vytvořím objekt moje_mapa, použiju k tomu třidu Map z knihovny folium
+# showing the results on the map
 moje_mapa = folium.Map(location=(50.07653, 14.40232), zoom_start=10, tiles="openstreetmap")
 
 
-interest = PointOfOpportunity(filename='souradnice_google_cukrarny.json')
-
-point = interest.grid(step=100)
-
-interest.write_json(point, "grid_point.json")
+interest = PointOfOpportunity(filename='cukrarny_firmy_gps_f.csv')
 
 
+point = interest.grid()
 
-   
-    
-# data_points = pandas.DataFrame({'vzdalenost': vzdalenost, 'latitude': latitude, 'longitude': longitude, 'geometry': geometry})
-# coords = pandas.DataFrame({'lat':latitude, 'lon':longitude})
+novy_grid = interest.filter_polygon(point,"PRAHA_P.json")
 
-# d = {'vzdalenost': vzdalenost, 'latitude': latitude, 'longitude': longitude, 'geometry': geometry}
-
-
-
-# #print(data_points)
-
-# data_points.to_csv("grid_point.csv", index=False)
-# coords.to_csv("grid_point_coord.csv", index=False)
+interest.to_csv(novy_grid, "novy_grid.csv")
 
     
 
-#tady si postupně vykreslím každý bod na mapu jako puntik, barvy jsou odstupnované podle nejmenší vzdálenosti
-# for p in point:
-#   if p[0] < 1:
-#     color = "red"
-#   elif p[0] < 3:
-#     color = "green"
-#   else:
-#     color = "blue"
-#   radius = 200
-#   folium.Circle(
-#       location=[p[2], p[1]],
-#       radius=radius,
-#       color="black",
-#       weight=1,
-#       fill_opacity=0.6,
-#       opacity=1,
-#       fill_color=color,
-#       fill=False,  # gets overridden by fill_color
-#       popup=p[0],
-#       tooltip="km",
-#   ).add_to(moje_mapa)
+#draw each point of the grid on the map as a rectangle, the colors are graded according to the smallest distance
+for index, row in novy_grid.iterrows():
+  if row['distance'] < 1:
+    color = "#FFB997"
+  elif row['distance'] < 3:
+    color = "#F67E7D"
+  else:
+    color = "#843B62"
+  # radius = 500
+  dx = 0.0025
+  folium.Rectangle(
+      bounds=[[row['latitude'] + dx, row['longitude'] + dx], [row['latitude'] - dx, row['longitude'] - dx]],
+      # radius=radius,
+      color=color,
+      weight=1,
+      fill_opacity=0.6,
+      opacity=1,
+      fill_color=color,
+      fill=False,  # gets overridden by fill_color
+      popup=row['distance'],
+      tooltip="km",
+  ).add_to(moje_mapa)
 
-# #tady si vykreslím náš dataset
-# for c in interest.coordinates:
-#   folium.Marker(
-#       location=[c[1], c[0]],
-#       tooltip="Opravdova cukrarna",
-#       popup="Zatim bez popisku",
-#       icon=folium.Icon(icon="star"),
-#   ).add_to(moje_mapa)
+#draw interest as a circle
+for c in interest.dataset:
+  c = c.split(",")
+  radius = 200
+  folium.Circle(
+      location=[float(c[3].replace('"', "")), float(c[4].replace('"', ""))],
+      radius=radius,
+      color="black",
+      weight=1,
+      fill_opacity=0.8,
+      opacity=1,
+      fill_color= '#0B032D',
+      fill=False,  # gets overridden by fill_color
+      popup=c[0].replace('"', ""),
+      tooltip="km",
+  ).add_to(moje_mapa)
 
-# #zadní souřadnic okraje- může být i polygon
-#   trail_coordinates = [
-#     (NORTH, EAST),
-#     (NORTH, WEST),
-#     (SOUTH, WEST),
-#     (SOUTH, EAST),
-#     (NORTH, EAST),
-#   ]
+#zadní souřadnic okraje- může být i polygon
+  trail_coordinates = [
+    (NORTH, EAST),
+    (NORTH, WEST),
+    (SOUTH, WEST),
+    (SOUTH, EAST),
+    (NORTH, EAST),
+  ]
 
-# #tady si vykreslím hranice, dá se využít polygon
-# folium.PolyLine(trail_coordinates, tooltip="oblast nahody").add_to(moje_mapa)
+#tady si vykreslím hranice, dá se využít polygon
+folium.PolyLine(trail_coordinates, tooltip="oblast nahody").add_to(moje_mapa)
 
-# #uložení mapy jako internetové stránky, můžeme otevřít v prohlížeči
-# moje_mapa.save("index.html")
+#uložení mapy jako internetové stránky, můžeme otevřít v prohlížeči
+moje_mapa.save("index.html")
