@@ -11,11 +11,11 @@ KM = 111 # conversion to km
 MULTI = 10000 # conversion coordinates to integer (for loop)
 
 # columns in csv file
-LATITUDE = 3
-LONGITUDE = 4
+LATITUDE = 4
+LONGITUDE = 5
 ID = 0
-SCORE = 2
-ZIPCODE = 8
+SCORE = 3
+ZIPCODE = 10
 
 # entry coordinates
 NORTH = 50.17743
@@ -82,7 +82,7 @@ class PointOfOpportunity:
             result = []
             for c in self.dataset:
                 c = c.split(",")
-                d = self.distance(x,y, float(c[LONGITUDE].replace('"', "")), float(c[LATITUDE].replace('"', "")))
+                d = self.distance(x,y, float(c[LONGITUDE]), float(c[LATITUDE]))
                 if d < min:
                     min = d
                     result = [d, x, y]
@@ -99,14 +99,14 @@ class PointOfOpportunity:
                 result = {}
                 for c in self.dataset:
                     c = c.split(',')
-                    d = self.distance(x/MULTI, y/MULTI, float(c[LONGITUDE].replace('"', "")), float(c[LATITUDE].replace('"', "")))
+                    d = self.distance(x/MULTI, y/MULTI, float(c[LONGITUDE]), float(c[LATITUDE]))
                     if d < min:
                         min = d
                         result['distance'] = d * KM
                         result['latitude'] = y/MULTI
                         result['longitude'] = x/MULTI
                         result['geometry'] = Point([x/MULTI], [y/MULTI])
-                        result['id_cukrarna'] = int(c[0].replace('"', ""))
+                        result['id_cukrarna'] = c[0]
                 final_list.append(result)
         return final_list
     
