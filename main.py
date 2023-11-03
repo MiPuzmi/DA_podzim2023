@@ -14,10 +14,11 @@ EAST = 14.706788
 moje_mapa = folium.Map(location=(50.07653, 14.40232), zoom_start=10, tiles="openstreetmap")
 
 
-interest = PointOfOpportunity(filename='cukrarny_firmy_gps_f.csv')
+interest = PointOfOpportunity(filename='cukrarny_union_vz2.csv')
 
 
 point = interest.grid()
+
 
 novy_grid = interest.filter_polygon(point,"PRAHA_P.json")
 
@@ -25,7 +26,7 @@ interest.to_csv(novy_grid, "novy_grid.csv")
 
     
 
-#draw each point of the grid on the map as a rectangle, the colors are graded according to the smallest distance
+# draw each point of the grid on the map as a rectangle, the colors are graded according to the smallest distance
 for index, row in novy_grid.iterrows():
   if row['distance'] < 1:
     color = "#FFB997"
@@ -53,7 +54,7 @@ for c in interest.dataset:
   c = c.split(",")
   radius = 200
   folium.Circle(
-      location=[float(c[3].replace('"', "")), float(c[4].replace('"', ""))],
+      location=[float(c[4]), float(c[5])],
       radius=radius,
       color="black",
       weight=1,
