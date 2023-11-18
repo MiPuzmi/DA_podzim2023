@@ -46,9 +46,10 @@ class PointOfOpportunity:
     #             point_grid.append([x/MULTI,y/MULTI])
     #     return point_grid
     
-    # def load_json(self, file):
-    #     with open(file, encoding='utf8') as f:
-    #         self.dataset = json.load(f)
+    def mhd_json(self, file):
+        with open(file, encoding='utf8') as f:
+            mhd_dataset = json.load(f)
+        return mhd_dataset
 
     #read csv file
     def load_csv(self, file):
@@ -99,20 +100,40 @@ class PointOfOpportunity:
                 result = {}
                 for c in self.dataset:
                     c = c.split(',')
-                    d = self.distance(x/MULTI, y/MULTI, float(c[LONGITUDE]), float(c[LATITUDE]))
+                    d = self.distance(x/MULTI, y/MULTI, float(c[LONGITUDE].strip('"')), float(c[LATITUDE].strip('"')))
                     if d < min:
                         min = d
                         result['distance'] = d * KM
                         result['latitude'] = y/MULTI
                         result['longitude'] = x/MULTI
                         result['geometry'] = Point([x/MULTI], [y/MULTI])
-                        result['id_cukrarna'] = c[0]
+                        result['id_cukrarna'] = c[0].strip('"')
                 final_list.append(result)
         return final_list
     
     # def write_json(self,result, filename):
     #     gdf = geopandas.GeoDataFrame(result, crs="EPSG:4326")
     #     gdf.to_file(filename, driver="GeoJSON")
+
+    def distance_mhd(self, result, file_mhd):
+        mhd_dataset = self.mhd_json(file_mhd)
+        new_result = []
+        for point in result:
+            x = point['longitude']
+            y = point['latitude']
+            min = float('inf')
+            for stop in mhd_dataset['stopGroups']:
+                name = stop['name']
+                x2 = stop['avgLon']
+                y2 = stop['avgLat']
+                d = self.distance(x, y, x2, y2)
+                if d < min:
+                    min = d
+                    point['distance_mhd'] = d*KM
+                    point['name_mhd'] = name.strip('"')
+            new_result.append(point)
+        return new_result
+                
 
     #filter point only in polygon(Prague)
     def filter_polygon(self, result, polygon_file):
@@ -123,6 +144,7 @@ class PointOfOpportunity:
         grid['Praha'] = mask
 
         novy_grid = grid[grid['Praha'] == True]
+        novy_grid.drop(columns=['Praha'], inplace=True)
         return novy_grid
 
     #save to csv
