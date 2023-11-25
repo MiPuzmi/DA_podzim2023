@@ -13,14 +13,14 @@ EAST = 14.706788
 # showing the results on the map
 moje_mapa = folium.Map(location=(50.07653, 14.40232), zoom_start=10, tiles="openstreetmap")
 
-
-interest = PointOfOpportunity(filename='cukrarny_union_vz2.csv')
-
+#create object
+interest = PointOfOpportunity(filename='Cukrarny_all_v3_20231111.csv')
 
 point = interest.grid()
 
+point_mhd = interest.distance_mhd(point, 'stops_MHD_PRAHA.json')
 
-novy_grid = interest.filter_polygon(point,"PRAHA_P.json")
+novy_grid = interest.filter_polygon(point_mhd,"PRAHA_P.json")
 
 interest.to_csv(novy_grid, "novy_grid.csv")
 
@@ -54,7 +54,7 @@ for c in interest.dataset:
   c = c.split(",")
   radius = 200
   folium.Circle(
-      location=[float(c[4]), float(c[5])],
+      location=[float(c[4].strip('"')), float(c[5].strip('"'))],
       radius=radius,
       color="black",
       weight=1,
