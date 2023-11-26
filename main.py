@@ -14,18 +14,17 @@ EAST = 14.706788
 moje_mapa = folium.Map(location=(50.07653, 14.40232), zoom_start=10, tiles="openstreetmap")
 
 #create object
-interest = PointOfOpportunity(filename='Cukrarny_all_v3_20231111.csv')
+interest = PointOfOpportunity(filename='soubory/Cukrarny_all_v3_20231111.csv')
 
 point = interest.grid()
 
-point_mhd = interest.distance_mhd(point, 'stops_MHD_PRAHA.json')
+point_mhd = interest.distance_mhd(point, 'soubory/stops_MHD_PRAHA.json')
 
-novy_grid = interest.filter_polygon(point_mhd,"PRAHA_P.json")
+novy_grid = interest.filter_polygon(point_mhd,"soubory/PRAHA_P.json")
 
-interest.to_csv(novy_grid, "novy_grid.csv")
+interest.to_csv(novy_grid, "soubory/novy_grid.csv")
 
     
-
 # draw each point of the grid on the map as a rectangle, the colors are graded according to the smallest distance
 for index, row in novy_grid.iterrows():
   if row['distance'] < 1:
