@@ -46,22 +46,19 @@ class PointOfOpportunity:
     #             point_grid.append([x/MULTI,y/MULTI])
     #     return point_grid
     
-    def mhd_json(self, file):
+    def load_json(self, file):
         with open(file, encoding='utf8') as f:
-            mhd_dataset = json.load(f)
-        return mhd_dataset
+            json_dataset = json.load(f)
+        return json_dataset
 
     #read csv file
     def load_csv(self, file):
         with open(file, encoding='utf8') as f:
             self.dataset = f.readlines()[1:]
 
-    #distance of two points
-    def distance(self,x1,y1,x2,y2):
-        c = sqrt((x1-x2)**2 + (y1-y2)**2)
-        return c
     
-    #distance of two points in km
+    
+    # distance of two points in km
     # def distance(self,x1,y1,x2,y2):
     #     c = geopy.distance.geodesic([x1, y1], [x2, y2]).km
     #     return c
@@ -74,6 +71,11 @@ class PointOfOpportunity:
     #         list.append([x,y])
     #     return list
 
+    #distance of two points
+    def distance(self,x1,y1,x2,y2):
+        c = sqrt((x1-x2)**2 + (y1-y2)**2)
+        return c
+    
     # create random points and calculation of the shortest distance from our object
     def monte_carlo(self, points=AMOUNT, top=1):
         final_list = []
@@ -83,10 +85,10 @@ class PointOfOpportunity:
             result = []
             for c in self.dataset:
                 c = c.split(",")
-                d = self.distance(x,y, float(c[LONGITUDE]), float(c[LATITUDE]))
+                d = self.distance(x,y, float(c[LONGITUDE].replace('"', '')), float(c[LATITUDE].replace('"', '')))
                 if d < min:
                     min = d
-                    result = [d, x, y]
+                    result = [d*KM, x, y]
             final_list.append(result)
         final_list.sort(reverse=True)
         return final_list[:top]
@@ -116,7 +118,7 @@ class PointOfOpportunity:
     #     gdf.to_file(filename, driver="GeoJSON")
 
     def distance_mhd(self, result, file_mhd):
-        mhd_dataset = self.mhd_json(file_mhd)
+        mhd_dataset = self.load_json(file_mhd)
         new_result = []
         for point in result:
             x = point['longitude']
